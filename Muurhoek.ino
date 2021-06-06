@@ -17,6 +17,7 @@ float Muurhoek(){
 
 int hoekAruco()
 {
+  const float pi = 3.14;
   Wire.beginTransmission(9);
   Wire.write("p");
   Wire.endTransmission();
@@ -39,6 +40,7 @@ int hoekAruco()
     aVal = lastHoekVal;
   }
   lastHoekVal = aVal;
+  aVal = aVal*(pi/180)
   Serial.print("a val: ");
   Serial.println(aVal);
   //delay(500);
