@@ -58,8 +58,13 @@ float error_afstand_voor = 0.0, d_error_afstand_voor = 0.0, error_oud_afstand_vo
 const float sp_hoek = 0.0;
 const float Kp_hoek = 3.0;
 const float Kd_hoek = 1.3;
+const float Ki_hoek = 1;
+
+float error_hoek_som = 0;
 
 float error_hoek, error_hoek_oud, d_error_hoek;
+
+
 
 float F = 0.0;
 

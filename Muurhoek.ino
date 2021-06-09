@@ -15,7 +15,7 @@ float Muurhoek(){
   return hoek;
 }
 
-int hoekAruco()
+float hoekAruco()
 {
   Wire.beginTransmission(9);
   Wire.write("p");
@@ -39,6 +39,7 @@ int hoekAruco()
     aVal = lastHoekVal;
   }
   lastHoekVal = aVal;
+  aVal *= 0.01745;
   Serial.print("a val: ");
   Serial.println(aVal);
   //delay(500);
