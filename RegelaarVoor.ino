@@ -6,11 +6,9 @@ void RegelaarVoor() {
   float x = AfstandVoor()/1000; //Maak meters van de gemeten millimeters
 
   //error_oud is static omdat deze weer vergeleken moet worden met de nieuwe error
-  error_oud_afstand_voor = sp_afstand_voor - x;
   error_afstand_voor = sp_afstand_voor - x;
   d_error_afstand_voor = error_afstand_voor - error_oud_afstand_voor;
   F = Kp_afstand_voor * error_afstand_voor + Kd_afstand_voor * d_error_afstand_voor / dt;
-
   //Zorg dat F niet hoger kan dan de maximale stuwkracht van de motoren.
   F = constrain(F, Fmin, Fmax);
   error_oud_afstand_voor = error_afstand_voor;
@@ -20,7 +18,15 @@ void RegelaarVoor() {
   if((abs(x-sp_afstand_voor) < hysterese)){
     motorkracht = 0;
   }
-  Serial.print("Motorkracht is: "); Serial.println(motorkracht);
-  RegelaarHoek(motorkracht);
+//  Serial.print("Motorkracht is: "); Serial.println(motorkracht);
+  if(regelaarVoor){
+    StuurMotorenAan(motorkracht, motorkracht, 0);
+  } else if(regelaarZij){
+      RegelaarZij(motorkracht);
 
+  } else if(regelaarHoek){
+    RegelaarHoek(motorkracht);
+  } else if(regelaarRosa){
+    RegelaarHoek_aruco(motorkracht);
+  }
 }

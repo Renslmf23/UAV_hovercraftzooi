@@ -14,7 +14,7 @@ void StuurMotorenAan(float F1, float F2, float F3) {
 
   analogWrite(mra, pwm1);
   analogWrite(mla, pwm2);
-  analogWrite(mzij, 0);
+  analogWrite(mzij, pwm3);
 
 }
 
@@ -23,9 +23,10 @@ int NewtonToPWM(float F) {
   if (pwm >= 100) {
     pwm = 100;
   }
-  if (pwm <= 30) {
-    pwm = 30;
+  if (pwm <= 20) {
+    pwm = 0;
   }
+  
   pwm *= 2.55;
   return pwm;
 }

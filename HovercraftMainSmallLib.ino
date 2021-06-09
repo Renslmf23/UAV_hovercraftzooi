@@ -42,7 +42,7 @@ const float Fmin = -0.26 * 2;   // N
 
 long t_oud, t_nw;               // ms
 float dt;
-const long cyclustijd = 100;    // ms
+const long cyclustijd = 50;    // ms
 
 //Regelaar waardes:
 //Deze waarden aanpassen om de regelaar af te stellen.
@@ -51,13 +51,17 @@ const long cyclustijd = 100;    // ms
 const float sp_afstand_voor = 0.3;
 const float Kp_afstand_voor = 2.0;
 const float Kd_afstand_voor = 2.0;
-const float hysterese = 0.00;
+const float hysterese = 0.01;
 float error_afstand_voor = 0.0, d_error_afstand_voor = 0.0, error_oud_afstand_voor = 0.0;
 
+const float sp_afstand_zij = 0.3;
+const float Kp_afstand_zij = 1.5;
+const float Kd_afstand_zij = 1.5;
+float error_afstand_zij = 0.0, d_error_afstand_zij = 0.0, error_oud_afstand_zij = 0.0;
 
 const float sp_hoek = 0.0;
-const float Kp_hoek = 3.0;
-const float Kd_hoek = 1.3;
+const float Kp_hoek = 1.5;
+const float Kd_hoek = 2.0;
 const float Ki_hoek = 1;
 
 float error_hoek_som = 0;
@@ -74,9 +78,17 @@ static const float sensorSpacing = 328;
 
 void StuurMotorenAan(float F1, float F2, float F3 = 0.0);
 
+String inputString = "";
+
+bool enabled, regelaarVoor, regelaarHoek, regelaarZij, regelaarRosa;
+
+String buf = "";
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
+
+  buf.reserve(100);
 
   //Zet de pinnen van de motoren en blowers als output
   pinMode(mra, OUTPUT);
@@ -84,28 +96,91 @@ void setup() {
   pinMode(mzij, OUTPUT);
   pinMode(mradir, OUTPUT);
   pinMode(mladir, OUTPUT);
+  pinMode(mzijdir, OUTPUT);
   pinMode(blowers, OUTPUT);
 
   //Voor testen zetten we de blowers aan en de fans uit
   digitalWrite(mzij, LOW);
   digitalWrite(mra, LOW);
   digitalWrite(mla, LOW);
-  digitalWrite(blowers, HIGH);
 
   //ToF sensoren opstarten
   StartSensoren();
   delay(1000);
 
   t_oud = millis();
+  enabled = false;
+  regelaarVoor = true;
+  //digitalWrite(blowers, HIGH);
+
 }
 
 void loop() {
-  t_nw = millis();
-  if (t_nw - t_oud > cyclustijd)
-  {
-    dt = (t_nw - t_oud) * .001;
-    t_oud = t_nw;
-    //RegelaarVoor();
-    hoekAruco();
+  if (enabled) {
+    t_nw = millis();
+    if (t_nw - t_oud > cyclustijd)
+    {
+      dt = (t_nw - t_oud) * .001;
+      t_oud = t_nw;
+      if (regelaarRosa) {
+        RegelaarHoek_aruco(0);
+      } else {
+        RegelaarVoor();
+      }
+
+      //hoekAruco();
+    }
   }
+}
+
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag so the main loop can
+    // do something about it:
+    if (inChar == '\n') {
+      DecodeString();
+    }
+  }
+}
+
+void DecodeString() {
+  Serial.println(inputString);
+  switch (inputString.charAt(0)) {
+    case 's':
+      enabled = !enabled;
+      digitalWrite(blowers, enabled);
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 'r':
+      regelaarVoor = !regelaarVoor;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 'v':
+      regelaarZij = !regelaarZij;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 'h':
+      regelaarHoek = !regelaarHoek;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 't':
+      regelaarRosa = !regelaarRosa;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+  }
+  inputString = "";
 }
