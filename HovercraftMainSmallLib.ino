@@ -1,10 +1,14 @@
 #include <Wire.h>
 #include <VL53L0X.h>
+#include <TinyMPU6050.h>
 
 //Instanties van de ToF sensoren aanmaken
 VL53L0X tof1 ;
 VL53L0X tof2 ;
 VL53L0X tof3 ;
+
+//Instantie aanmaken van MPU
+MPU6050 mpu (Wire);
 
 //Shutdowns van de ToF sensoren
 #define shdwnVoor 2
@@ -68,6 +72,16 @@ float error_hoek_som = 0;
 
 float error_hoek, error_hoek_oud, d_error_hoek;
 
+float sp_hoek_rens = 0.0;
+const float Kp_hoek_rens = 1.5;
+const float Kd_hoek_rens = 2.0;
+const float Ki_hoek_rens = 1;
+
+float error_hoek_som_rens = 0;
+
+float error_hoek_oud_rens, d_error_hoek_rens;
+
+
 
 
 float F = 0.0;
@@ -80,7 +94,7 @@ void StuurMotorenAan(float F1, float F2, float F3 = 0.0);
 
 String inputString = "";
 
-bool enabled, regelaarVoor, regelaarHoek, regelaarZij, regelaarRosa;
+bool enabled, regelaarVoor, regelaarHoek, regelaarZij, regelaarRosa, regelaarRens;
 
 String buf = "";
 
@@ -116,6 +130,7 @@ void setup() {
 }
 
 void loop() {
+  mpu.Execute();
   if (enabled) {
     t_nw = millis();
     if (t_nw - t_oud > cyclustijd)
@@ -124,6 +139,8 @@ void loop() {
       t_oud = t_nw;
       if (regelaarRosa) {
         RegelaarHoek_aruco(0);
+      } else if (regelaarRens){
+        RegelaarRens();
       } else {
         RegelaarVoor();
       }
