@@ -139,7 +139,7 @@ void loop() {
       t_oud = t_nw;
       if (regelaarRosa) {
         RegelaarHoek_aruco(0);
-      } else if (regelaarRens){
+      } else if (regelaarRens) {
         RegelaarRens();
       } else {
         RegelaarVoor();
@@ -197,6 +197,19 @@ void DecodeString() {
       analogWrite(mzij, 0);
       analogWrite(mra, 0);
       analogWrite(mla, 0);
+      break;
+    case 'R':
+      regelaarRens = !regelaarRens;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 'H':
+      sp_hoek_rens = inputString.substring(1, 4).toInt();
+      Serial.println(sp_hoek_rens);
+      break;
+    case 'C':
+      mpu.Calibrate();
       break;
   }
   inputString = "";
