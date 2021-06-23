@@ -31,17 +31,25 @@ float hoekAruco()
 
   }
   int indexA = buf.indexOf('a');
-  //  int indexC = buf.indexOf('c');
-  Serial.println(buf.substring(indexA + 1));
-  float aVal = buf.substring(indexA + 1).toInt();
-  // int bVal = buf.substring(indexB + 1).toInt();
-  if (aVal == 0) {
-    aVal = lastHoekVal;
+  if (errorCount > 100) {
+    enabled = false;
+    errorCount = 0;
+    Serial.println(F("No marker found!"));
+    return 0;
   }
-  lastHoekVal = aVal;
-  // aVal *= 0.01745;
+  if (indexA == -1) {
+    buf = "";
+    errorCount++;
+    return 0;
+  }
+  errorCount = 0;
+  //  int indexC = buf.indexOf('c');
+  float aVal = (0.5 * buf.substring(indexA + 1).toInt()) + (0.5 * lastHoekVal);
   buf = "";
+  // int bVal = buf.substring(indexB + 1).toInt();
+  lastHoekVal = aVal;
+  //aVal *= 0.01745;
+  //  //delay(500);
   Serial.println(aVal);
-  //delay(500);
   return aVal;
 }

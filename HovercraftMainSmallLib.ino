@@ -31,6 +31,8 @@ MPU6050 mpu (Wire);
 
 #define blowers 5 //Blowers
 
+#define TESTI2C 1
+
 //Te gebruiken functies:
 //returns void  -> StartSensoren() : Aanroepen in de setup, zet de adressen van de ToF sensoren wanneer de arduino opstart.
 //returns float -> Muurhoek() : Geeft de hoek ten opzichte van de muur in graden. Rechtsom negatief, linksom positief.
@@ -46,7 +48,7 @@ const float Fmin = -0.26 * 2;   // N
 
 long t_oud, t_nw;               // ms
 float dt;
-const long cyclustijd = 50;    // ms
+const long cyclustijd = 100;    // ms
 
 //Regelaar waardes:
 //Deze waarden aanpassen om de regelaar af te stellen.
@@ -64,7 +66,7 @@ const float Kd_afstand_zij = 1.5;
 float error_afstand_zij = 0.0, d_error_afstand_zij = 0.0, error_oud_afstand_zij = 0.0;
 
 const float sp_hoek = 0.0;
-const float Kp_hoek = 1.5;
+const float Kp_hoek = 2.0;
 const float Kd_hoek = 2.0;
 const float Ki_hoek = 1;
 
@@ -73,9 +75,9 @@ float error_hoek_som = 0;
 float error_hoek, error_hoek_oud, d_error_hoek;
 
 float sp_hoek_rens = 0.0;
-const float Kp_hoek_rens = 1.5;
+const float Kp_hoek_rens = 2.0;
 const float Kd_hoek_rens = 2.0;
-const float Ki_hoek_rens = 1;
+const float Ki_hoek_rens = 1.0;
 
 float error_hoek_som_rens = 0;
 
@@ -94,13 +96,27 @@ void StuurMotorenAan(float F1, float F2, float F3 = 0.0);
 
 String inputString = "";
 
-bool enabled, regelaarVoor, regelaarHoek, regelaarZij, regelaarRosa, regelaarRens;
+bool enabled = false;
+
+enum State {
+  regelaarVoor,
+  regelaarHoek,
+  regelaarZij,
+  regelaarRosa,
+  regelaarRens
+};
+
+State state = regelaarVoor;
 
 String buf = "";
+
+unsigned int errorCount = 0;
 
 void setup() {
   Serial.begin(115200);
   Wire.begin();
+
+
 
   buf.reserve(100);
 
@@ -121,11 +137,12 @@ void setup() {
   //ToF sensoren opstarten
   StartSensoren();
   delay(1000);
+  Serial.println("Started!");
 
   t_oud = millis();
-  enabled = false;
-  regelaarVoor = true;
-  //digitalWrite(blowers, HIGH);
+  //  enabled = true;
+  //  state = regelaarRens;
+  //  digitalWrite(blowers, HIGH);
 
 }
 
@@ -137,9 +154,9 @@ void loop() {
     {
       dt = (t_nw - t_oud) * .001;
       t_oud = t_nw;
-      if (regelaarRosa) {
+      if (state == regelaarRosa) {
         RegelaarHoek_aruco(0);
-      } else if (regelaarRens) {
+      } else if (state == regelaarRens) {
         RegelaarRens();
       } else {
         RegelaarVoor();
@@ -165,41 +182,37 @@ void serialEvent() {
 }
 
 void DecodeString() {
-  Serial.println(inputString);
   switch (inputString.charAt(0)) {
     case 's':
       enabled = !enabled;
-      digitalWrite(blowers, enabled);
-      analogWrite(mzij, 0);
-      analogWrite(mra, 0);
-      analogWrite(mla, 0);
+      SetEnabled();
       break;
     case 'r':
-      regelaarVoor = !regelaarVoor;
+      state = regelaarVoor;
       analogWrite(mzij, 0);
       analogWrite(mra, 0);
       analogWrite(mla, 0);
       break;
     case 'v':
-      regelaarZij = !regelaarZij;
-      analogWrite(mzij, 0);
-      analogWrite(mra, 0);
-      analogWrite(mla, 0);
-      break;
-    case 'h':
-      regelaarHoek = !regelaarHoek;
-      analogWrite(mzij, 0);
-      analogWrite(mra, 0);
-      analogWrite(mla, 0);
-      break;
-    case 't':
-      regelaarRosa = !regelaarRosa;
+      state = regelaarZij;
       analogWrite(mzij, 0);
       analogWrite(mra, 0);
       analogWrite(mla, 0);
       break;
     case 'R':
-      regelaarRens = !regelaarRens;
+      state = regelaarHoek;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 't':
+      state = regelaarRosa;
+      analogWrite(mzij, 0);
+      analogWrite(mra, 0);
+      analogWrite(mla, 0);
+      break;
+    case 'h':
+      state = regelaarRens;
       analogWrite(mzij, 0);
       analogWrite(mra, 0);
       analogWrite(mla, 0);
@@ -210,7 +223,19 @@ void DecodeString() {
       break;
     case 'C':
       mpu.Calibrate();
+      Serial.println(F("Done"));
+      break;
+    default:
+      Serial.print(F("Unknown command: "));
+      Serial.println(inputString);
       break;
   }
   inputString = "";
+}
+
+void SetEnabled() {
+  digitalWrite(blowers, enabled);
+  analogWrite(mzij, 0);
+  analogWrite(mra, 0);
+  analogWrite(mla, 0);
 }

@@ -17,7 +17,7 @@ void StartSensoren() {
   delay(10);
 
   //Serial.println("hoi");
-  
+
   //Adres van sensor 1 zetten
   digitalWrite(shdwnVoor, HIGH);
   digitalWrite(shdwnZijVoor, LOW);
@@ -30,7 +30,7 @@ void StartSensoren() {
   //Serial.println("hoi2");
   tof1.setAddress(tofVoor);
   delay(10);
-  
+
   //Adres van sensor 2 zetten
   digitalWrite(shdwnZijVoor, HIGH);
   if (!tof2.init()) {
@@ -39,7 +39,7 @@ void StartSensoren() {
   }
   tof2.setAddress(tofZijVoor);
   delay(10);
-  
+
   //Adres van sensor 3 zetten
   digitalWrite(shdwnZijAchter, HIGH);
   if (!tof3.init()) {
@@ -47,4 +47,10 @@ void StartSensoren() {
     //while (1);
   }
   tof3.setAddress(tofZijAchter);
+  Serial.println(F("ToF started"));
+#ifndef TESTI2C
+  mpu.Initialize();
+  mpu.Calibrate();
+#endif
+
 }

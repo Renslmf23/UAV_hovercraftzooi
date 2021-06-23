@@ -19,14 +19,12 @@ void RegelaarVoor() {
     motorkracht = 0;
   }
 //  Serial.print("Motorkracht is: "); Serial.println(motorkracht);
-  if(regelaarVoor){
+  if(state == regelaarVoor){
     StuurMotorenAan(motorkracht, motorkracht, 0);
-  } else if(regelaarZij){
+  } else if(state == regelaarZij){
       RegelaarZij(motorkracht);
 
-  } else if(regelaarHoek){
+  } else if(state == regelaarHoek){
     RegelaarHoek(motorkracht);
-  } else if(regelaarRosa){
-    RegelaarHoek_aruco(motorkracht);
   }
 }
